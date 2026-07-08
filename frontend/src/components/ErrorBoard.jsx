@@ -4,13 +4,14 @@ import * as XLSX from "xlsx";
 
 const PAGE_SIZE = 8;
 
-export default function ErrorBoard({ failedRecords, onToast }) {
+export default function ErrorBoard({ failedRecords, onToast, file }) {
   const [query, setQuery] = useState("");
   const [sortAsc, setSortAsc] = useState(true);
   const [page, setPage] = useState(1);
 
 
   console.log("failedRecod", failedRecords)
+  console.log("file name", file)
 
 
   const filtered = useMemo(() => {
@@ -32,8 +33,8 @@ export default function ErrorBoard({ failedRecords, onToast }) {
 
     list = [...(list || [])].sort((a, b) =>
       sortAsc
-        ? (a?.reference || a?.name || a?.internalName || a?.billName || "Upload sheet not valid").localeCompare(b?.reference || b?.name || b?.internalName || b?.billName ||  "Upload sheet not valid")
-        : (b?.reference || b?.name || b?.internalName || b?.billName || "Upload sheet not valid").localeCompare(a?.reference || a?.name || a?.internalName || a?.billName ||  "Upload sheet not valid")
+        ? (a?.reference || a?.name || a?.internalName || a?.billName || "Upload sheet not valid").localeCompare(b?.reference || b?.name || b?.internalName || b?.billName || "Upload sheet not valid")
+        : (b?.reference || b?.name || b?.internalName || b?.billName || "Upload sheet not valid").localeCompare(a?.reference || a?.name || a?.internalName || a?.billName || "Upload sheet not valid")
     );
 
     return list;
@@ -98,7 +99,10 @@ export default function ErrorBoard({ failedRecords, onToast }) {
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Failed Records");
-    XLSX.writeFile(wb, "jaz-migration-failed-records.xlsx");
+    // XLSX.writeFile(wb, "jaz-migration-failed-records.xlsx"); 
+
+    const fileName = file.name.replace(/\.[^/.]+$/, "");
+    XLSX.writeFile(wb, `${fileName}-failed-records.xlsx`);
 
     onToast?.("Downloading failed records workbook");
   }

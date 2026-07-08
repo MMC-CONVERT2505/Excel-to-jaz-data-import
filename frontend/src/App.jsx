@@ -173,7 +173,7 @@ export default function App() {
           <div className="mt-12">
             <ResultBanner result={result} />
             <ResultStats result={result} />
-            <ErrorBoard failedRecords={result} onToast={toast} />
+            <ErrorBoard failedRecords={result} onToast={toast} file={file} />
           </div>
         )}
       </main>
