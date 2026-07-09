@@ -1,0 +1,43 @@
+name: Deploy JAZ Tool
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AWS Server
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+
+          script: |
+            cd /home/ubuntu/Excel-to-jaz-data-import
+
+            echo "Resetting local changes..."
+            git reset --hard
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Installing backend dependencies..."
+            cd backend
+            npm install
+
+            echo "Installing frontend dependencies and building..."
+            cd ../frontend
+            npm install
+            npm run build
+
+            echo "Restarting only JAZ application..."
+            pm2 restart jaz-backend
+
+            echo "JAZ Deployment Successful"
