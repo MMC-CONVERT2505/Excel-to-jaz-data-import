@@ -18,10 +18,16 @@ import invoiceRoute from "./routes/invoiceRoute.js"
 import customerCreditNoteRoute from "./routes/customerCreditNoteRoute.js"
 import supplireCreditNoteRoute from "./routes/supplireCreditNoteRoute.js"
 import invoicePaymentRoute from "./routes/invoicePaymentRoute.js"
-import billPaymentRoute from "./routes/billPaymentRoute.js"
+import billPaymentRoute from "./routes/billPaymentRoute.js" 
 
 
-dotenv.config();
+// get routes import 
+
+import getOrganizationDetailsRotes from "./routes/getRoutes/getOrganizationDetailsRoute.js";
+
+
+
+dotenv.config(); 
 
 const app = express();
 
@@ -50,7 +56,12 @@ app.get("/", (req, res) => {
     success: true,
     message: "🚀 Server is running successfully",
   });
-});
+}); 
+
+
+// get orgenization 
+
+app.use("/", getOrganizationDetailsRotes) 
 
 
 

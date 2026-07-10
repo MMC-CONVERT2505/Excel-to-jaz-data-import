@@ -46,8 +46,11 @@ export async function apiSubmitMigration(
 
     console.log("endpoint", endpoint)
 
+    console.log("base url", `${BASE_URL}${endpoint}`)
+
+
     const { data } = await axios.post(
-      `${BASE_URL}${endpoint}`,
+      `${BASE_URL}/${endpoint}`,
       formData,
       {
         headers: {
