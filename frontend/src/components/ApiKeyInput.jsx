@@ -7,36 +7,6 @@ const BASE_URL = __BASE_URL__;
 
 export default function ApiKeyInput({ value, onChange, disabled }) {
   const [showKey, setShowKey] = useState(false);
-  const [organizationName, setOrganizationName] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const verifyApiKey = async () => {
-    if (!value.trim()) return;
-
-    console.log("value", value)
-
-    try {
-      setLoading(true); 
-
-      console.log("Base url for organization name",`${BASE_URL}/organization` )
-
-      const res = await axios.get( `${BASE_URL}/organization`, {
-        params: {
-          apiKey: value,
-        },
-      });
-
-
-      console.log("organization name", res.data)
-
-      setOrganizationName(res.data.name);
-    } catch (err) {
-      setOrganizationName("");
-      alert("Invalid API Key");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="mb-5">
