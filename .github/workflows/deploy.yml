@@ -20,24 +20,49 @@ jobs:
           port: ${{ secrets.PORT }}
 
           script: |
+            set -e
+
+            echo "======================================"
+            echo "Starting JAZ Deployment"
+            echo "======================================"
+
             cd /home/ubuntu/Excel-to-jaz-data-import
 
             echo "Resetting local changes..."
             git reset --hard
 
-            echo "Pulling latest code..."
+            echo "Pulling latest code from main branch..."
             git pull origin main
+
+            echo "Latest commit on server:"
+            git log -1 --oneline
 
             echo "Installing backend dependencies..."
             cd backend
             npm install
 
-            echo "Installing frontend dependencies and building..."
+            echo "Installing frontend dependencies..."
             cd ../frontend
             npm install
+
+            echo "Building frontend..."
             npm run build
 
-            echo "Restarting only JAZ application..."
-            pm2 restart jaz-backend
+            echo "Deploying frontend build..."
+            sudo cp -r dist/* /var/www/Excel-to-jaz-data-import/
 
+            echo "Testing Nginx configuration..."
+            sudo nginx -t
+
+            echo "Reloading Nginx..."
+            sudo systemctl reload nginx
+
+            echo "Restarting only ETJ application..."
+            pm2 restart ETJ
+
+            echo "Checking ETJ application status..."
+            pm2 show ETJ
+
+            echo "======================================"
             echo "JAZ Deployment Successful"
+            echo "======================================"
