@@ -101,31 +101,104 @@ export default function App() {
   }
 
   /* ---------------- migration submit ---------------- */
+  // async function startMigration() {
+  //   if (!ready) return;
+  //   setSubmitting(true);
+  //   setResult(null);
+  //   const total = workbookInfo.totalRows;
+  //   setProgress({ processed: 0, total, pct: 0 });
+
+  //   const endpoint = API_ROUTES[moduleId];
+
+
+  //   const res = await apiSubmitMigration({ apiKey, endpoint, file, totalRows: total }, (processed, t) => {
+  //     const pct = Math.min(100, Math.round((processed / t) * 100));
+  //     setProgress({ processed, total: t, pct });
+  //   });
+
+  //   console.log("res", res.results)
+  //   console.log("res", res.results)
+  //   console.log("res2222", res)
+
+  //   setSubmitting(false);
+  //   setResult(res);
+
+  //   toast(
+  //     res.results[0].failedCount === 0 ? "Migration completed — all records imported" : `Migration completed with ${res.failed} failed record(s)`,
+  //     res.results[0].failedCount > 0 ? "error" : "ok"
+  //   );
+  // }
+
   async function startMigration() {
     if (!ready) return;
+
     setSubmitting(true);
     setResult(null);
+
     const total = workbookInfo.totalRows;
-    setProgress({ processed: 0, total, pct: 0 });
+
+    setProgress({
+      processed: 0,
+      total,
+      pct: 0,
+    });
 
     const endpoint = API_ROUTES[moduleId];
 
+    try {
+      const res = await apiSubmitMigration(
+        {
+          apiKey,
+          endpoint,
+          file,
+          totalRows: total,
+        },
+        (processed, t) => {
+          // Backend response aane tak 95% se upar mat jao
+          const pct = Math.min(
+            95,
+            Math.round((processed / t) * 100)
+          );
 
-    const res = await apiSubmitMigration({ apiKey, endpoint, file, totalRows: total }, (processed, t) => {
-      const pct = Math.min(100, Math.round((processed / t) * 100));
-      setProgress({ processed, total: t, pct });
-    });
+          setProgress({
+            processed,
+            total: t,
+            pct,
+          });
+        }
+      );
 
-    console.log("res", res.results)
-    console.log("res2222", res)
+      // Backend successfully complete ho gaya
+      setProgress({
+        processed: total,
+        total,
+        pct: 100,
+      });
 
-    setSubmitting(false);
-    setResult(res);
+      console.log("Response :", res);
 
-    toast(
-      res.results[0].failedCount === 0 ? "Migration completed — all records imported" : `Migration completed with ${res.failed} failed record(s)`,
-      res.results[0].failedCount > 0 ? "error" : "ok"
-    );
+      setResult(res);
+
+      toast(
+        res.failedCount === 0
+          ? "Migration completed — all records imported"
+          : `Migration completed with ${res.failedCount} failed record(s)`,
+        res.failedCount > 0 ? "error" : "ok"
+      );
+    } catch (err) {
+      console.error("Migration Error:", err);
+
+      toast("Migration failed", "error");
+
+      setResult({
+        success: false,
+        message: err?.response?.data?.message || err.message,
+        failedCount: 0,
+        results: [],
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
 
