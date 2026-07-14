@@ -436,10 +436,10 @@ const createInvoice = async (req, res) => {
 
         for (const payload of Object.values(groupedInvoice)) {
             try {
-                console.log(
-                    "Payload:",
-                    JSON.stringify(payload, null, 2)
-                );
+                // console.log(
+                //     "Payload:",
+                //     JSON.stringify(payload, null, 2)
+                // );
 
                 const response = await axios.post(
                     "https://api.getjaz.com/api/v1/invoices",
@@ -472,6 +472,21 @@ const createInvoice = async (req, res) => {
             }
         }
 
+        console.log("res33", {
+            success: true,
+            totalRows: excelData.length,
+            totalRecords: Object.keys(groupedInvoice)
+                .length,
+            successCount: results.filter(
+                (r) => r.status === "success"
+            ).length,
+            failedCount: results.filter(
+                (r) => r.status === "failed"
+            ).length,
+
+            results,
+        })
+
         return res.status(200).json({
             success: true,
             totalRows: excelData.length,
@@ -486,6 +501,8 @@ const createInvoice = async (req, res) => {
 
             results,
         });
+
+
 
     } catch (error) {
         return res.status(500).json({

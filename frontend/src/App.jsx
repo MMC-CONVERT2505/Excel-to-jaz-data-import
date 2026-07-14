@@ -117,6 +117,7 @@ export default function App() {
     });
 
     console.log("res", res.results)
+    console.log("res2222", res)
 
     setSubmitting(false);
     setResult(res);
