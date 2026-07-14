@@ -335,7 +335,7 @@ const createInvoice = async (req, res) => {
 
         for (const row of excelData) {
 
-            console.log("row", row)
+            // console.log("row", row)
 
             const reference = row["reference"]
                 ?.toString()
@@ -351,9 +351,9 @@ const createInvoice = async (req, res) => {
                 row["contact name"]
             );
 
-            if (!contactResourceId) {
-                console.log(`Contact not found : ${row["contact name"]}`)
-            }
+            // if (!contactResourceId) {
+            //     console.log(`Contact not found : ${row["contact name"]}`)
+            // }
 
             if (!groupedInvoice[reference]) {
                 groupedInvoice[reference] = {
@@ -388,9 +388,9 @@ const createInvoice = async (req, res) => {
                 row["account name"]
             );
 
-            if (!accountResourceId) {
-                console.log(`Account not found : ${row["account name"]}`)
-            }
+            // if (!accountResourceId) {
+            //     console.log(`Account not found : ${row["account name"]}`)
+            // }
 
             const lineItem = {
                 name: row["Item name"]
@@ -410,9 +410,9 @@ const createInvoice = async (req, res) => {
                     row["tax name"]
                 );
 
-                if (!taxProfileResourceId) {
-                    console.log(`Tax Profile not found : ${row["tax name"]}`)
-                }
+                // if (!taxProfileResourceId) {
+                //     console.log(`Tax Profile not found : ${row["tax name"]}`)
+                // }
 
                 lineItem.taxProfileResourceId =
                     taxProfileResourceId;
