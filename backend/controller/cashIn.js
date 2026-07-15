@@ -6,6 +6,7 @@ import path from "path";
 import getAccount from "./getController/getChartOfAccount.js"
 import getCustomer from "./getController/getCustomer.js"
 import getBankAccounts from "./getController/getBankAccounts.js";
+import getTaxProfiles from "./getController/getTax.js";
 
 
 
@@ -265,10 +266,22 @@ const createCashIn = async (req, res) => {
             await getBankAccounts(apiKey);
 
 
+        const taxProfile = await getTaxProfile(apiKey)
+
+
         // Create lookup maps
         const accountMap = {};
         const contactMap = {};
         const bankMap = {};
+
+
+        const taxProfileMap = {};
+
+        taxProfile.forEach(tp => {
+            taxProfileMap[
+                tp.name?.trim().toLowerCase()
+            ] = tp.resourceId;
+        });
 
         coaList.forEach(acc => {
             accountMap[
@@ -315,8 +328,8 @@ const createCashIn = async (req, res) => {
             console.log("row2222", row)
 
             const reference = String(
-                        row["reference*"]
-                    )
+                row["reference*"]
+            )
 
             const bankAccountId =
                 findId(
@@ -326,7 +339,7 @@ const createCashIn = async (req, res) => {
 
 
             if (!bankAccountId) {
-               console.log(`Bank Name Not Found: ${row["bank name"]}`)
+                console.log(`Bank Name Not Found: ${row["bank name"]}`)
             }
 
             const contactId =
@@ -339,6 +352,19 @@ const createCashIn = async (req, res) => {
                 console.log(`Contact Name Not Found: ${row["contact name"]}`)
             }
 
+
+            const taxProfileId = findId(
+                taxProfileMap,
+                normalize(row["taxProfile"])
+            );
+
+
+
+            if (!taxProfileId && row["taxProfile"]) {
+                console.log(`taxProfile Not Found: ${row["taxProfile"]}`);
+            }
+
+
             if (!groupedData[reference]) {
 
                 groupedData[
@@ -348,7 +374,7 @@ const createCashIn = async (req, res) => {
 
                     valueDate:
                         excelDateToJSDate(
-                           row[
+                            row[
                             "valueDate*"
                             ]
                         ),
@@ -431,37 +457,27 @@ const createCashIn = async (req, res) => {
             );
 
             if (!accountId) {
-              console.log(`Account Name Not Found: ${row["account name"]}`)
+                console.log(`Account Name Not Found: ${row["account name"]}`)
             }
 
-            groupedData[
-                reference
-            ].lines.push({
-                accountResourceId:
-                    accountId,
+            const line = {
+                accountResourceId: accountId,
 
-                amount:
-                    Number(
-                        row["amount"]
-                    ) || 0,
+                amount: Number(row["amount"]) || 0,
 
-                description:
-                    row[
-                    "description"
-                    ] || "",
+                description: row["description"] || "",
 
-                taxProfileResourceId:
-                    row[
-                        "taxProfileResourceId"
-                    ]
-                        ?.toString()
-                        .trim() ||
-                    undefined,
-            });
+                ...(taxProfileId && {
+                    taxProfileResourceId: taxProfileId,
+                }),
+            };
+
+
+            groupedData[reference].lines.push(line);
         }
 
 
-       
+
 
 
         for (const payload of Object.values(
@@ -485,7 +501,7 @@ const createCashIn = async (req, res) => {
                         {
                             headers: {
                                 "x-jk-api-key":
-                                   apiKey,
+                                    apiKey,
                                 "Content-Type":
                                     "application/json",
                             },

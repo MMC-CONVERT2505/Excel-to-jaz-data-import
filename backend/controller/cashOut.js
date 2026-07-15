@@ -6,6 +6,7 @@ import path from "path";
 import getAccount from "./getController/getChartOfAccount.js"
 import getContact from "./getController/getSupplire.js"
 import getBankAccounts from "./getController/getBankAccounts.js"
+import getTaxProfiles from "./getController/getTax.js";
 
 
 
@@ -341,7 +342,9 @@ const createCashOut = async (req, res) => {
             await getContact(apiKey);
 
         const bankAccounts =
-            await getBankAccounts(apiKey); 
+            await getBankAccounts(apiKey);
+
+        const taxProfile = await getTaxProfiles(apiKey)
 
         // console.log("bank account", bankAccounts)
 
@@ -350,6 +353,14 @@ const createCashOut = async (req, res) => {
                 .trim()
                 .toLowerCase()
                 .replace(/\s+/g, "");
+
+        const taxProfileMap = {};
+
+        taxProfile.forEach(tp => {
+            taxProfileMap[
+                normalize(tp.name)
+            ] = tp.resourceId;
+        });
 
         const groupedData = {};
 
@@ -406,6 +417,14 @@ const createCashOut = async (req, res) => {
                             accountName
                         )
                 )?.resourceId;
+
+            const taxProfileId = taxProfileMap[
+                normalize(row["tax profile"])
+            ];
+
+            if (!taxProfileId && row["tax profile"]) {
+                console.log(`Tax Profile not found: ${row["tax profile"]}`);
+            }
 
             if (!bankAccountId) {
                 console.log(`Bank Account not found : ${bankAccountName}`)
@@ -500,13 +519,7 @@ const createCashOut = async (req, res) => {
                     "description"
                     ] || "",
 
-                taxProfileResourceId:
-                    row[
-                        "taxProfileResourceId"
-                    ]
-                        ?.toString()
-                        .trim() ||
-                    undefined,
+                taxProfileResourceId: taxProfileId,
             });
         }
 
