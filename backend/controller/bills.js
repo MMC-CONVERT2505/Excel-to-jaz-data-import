@@ -25,186 +25,6 @@ const excelDateToJSDate = (excelDate) => {
 
 
 
-// const createBill = async (req, res) => {
-//     try {
-//         const filePath = path.join(
-//             process.cwd(),
-//             "files",
-//             "bill.xlsx"
-//         );
-
-//         const workbook = XLSX.readFile(filePath);
-//         const worksheet =
-//             workbook.Sheets[
-//             workbook.SheetNames[0]
-//             ];
-
-//         const excelData =
-//             XLSX.utils.sheet_to_json(
-//                 worksheet
-//             );
-
-//         const groupedBills = {};
-
-
-//         for (const row of excelData) {
-//             console.log("row", row);
-
-//             const reference =
-//                 row["reference"]
-//                     ?.toString()
-//                     .trim();
-
-//             if (!reference) continue;
-
-//             if (!groupedBills[reference]) {
-//                 groupedBills[reference] = {
-//                     contactResourceId:
-//                         row["contactID"]
-//                             ?.toString()
-//                             .trim(),
-
-//                     reference,
-
-//                     valueDate:
-//                         excelDateToJSDate(
-//                             row["date"]
-//                         ),
-
-//                     dueDate:
-//                         excelDateToJSDate(
-//                             row["duedate"]
-//                         ),
-
-//                     saveAsDraft:
-//                         row["savedarft"] === true,
-
-//                     ...(row["currency"] && {
-//                         currency: {
-//                             sourceCurrency:
-//                                 row["currency"]
-//                                     .toString()
-//                                     .trim(),
-
-//                             ...(row["exchange"] && {
-//                                 exchangeRate: Number(
-//                                     row["exchange"]
-//                                 ),
-//                             }),
-//                         },
-//                     }),
-
-//                     lineItems: [],
-//                 };
-//             }
-
-//             groupedBills[
-//                 reference
-//             ].lineItems.push({
-//                 name: row["Item name"]
-//                     ?.toString()
-//                     .trim(),
-
-//                 quantity: Number(
-//                     row["Quantity"] || 1
-//                 ),
-
-//                 unitPrice: Number(
-//                     row["unitprice"] || 0
-//                 ),
-
-//                 accountResourceId:
-//                     row["Accountid"]
-//                         ?.toString()
-//                         .trim(),
-
-//                 ...(row["taxid"] && {
-//                     taxProfileResourceId:
-//                         row["taxid"]
-//                             .toString()
-//                             .trim(),
-//                 }),
-//             });
-//         }
-
-//         const results = [];
-
-//         // // Create one bill per reference
-//         for (const payload of Object.values(
-//             groupedBills
-//         )) {
-//             try {
-//                 console.log(
-//                     "Payload =>",
-//                     JSON.stringify(
-//                         payload,
-//                         null,
-//                         2
-//                     )
-//                 );
-
-//                 const response =
-//                     await axios.post(
-//                         "https://api.getjaz.com/api/v1/bills",
-//                         payload,
-//                         {
-//                             headers: {
-//                                 "x-jk-api-key":
-//                                     process
-//                                         .env
-//                                         .JAZ_API_KEY,
-//                                 "Content-Type":
-//                                     "application/json",
-//                                 Accept:
-//                                     "application/json",
-//                             },
-//                         }
-//                     );
-
-//                 results.push({
-//                     status: "success",
-//                     reference:
-//                         payload.reference,
-//                     data:
-//                         response.data,
-//                 });
-//             } catch (error) {
-//                 results.push({
-//                     status: "failed",
-//                     reference:
-//                         payload.reference,
-//                     error:
-//                         error.response
-//                             ?.data ||
-//                         error.message,
-//                 });
-//             }
-//         }
-
-
-
-
-//         return res.status(200).json({
-//             success: true,
-//             totalRows:
-//                 excelData.length,
-//             totalBills:
-//                 Object.keys(
-//                     groupedBills
-//                 ).length,
-//             results,
-//         });
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message:
-//                 error.message,
-//         });
-//     }
-// };
-
-
-
 const getBillsId = async (req, res) => {
     try {
         const response = await axios.get(
@@ -264,12 +84,7 @@ const getBillsId = async (req, res) => {
 
 const createBill = async (req, res) => {
     try {
-        // const filePath = path.join(
-        //     process.cwd(),
-        //     "files",
-        //     "bill.xlsx"
-        // );
-
+    
 
         const { apiKey } = req.body
 
@@ -300,9 +115,10 @@ const createBill = async (req, res) => {
 
 
 
-        console.log("taxes", taxes)
+        // console.log("taxes", taxes)
 
         const groupedBills = {};
+        const results = [];
 
         for (const row of excelData) {
             console.log("row", row)
@@ -354,18 +170,27 @@ const createBill = async (req, res) => {
                             .toLowerCase()
                 );
 
-            if (!coaAccount) {
-                console.log(
-                    `COA not found: ${row["account name"]}`
-                );
-                continue;
-            }
+              if(!coaAccount){
+                results.push({
+                      status:
+                        "failed",
+                    reference:
+                        row["reference"],
+                    error: `COA not found: ${row["account name"]}`               
+                })
+                continue
+            } 
 
-            if (!supplier) {
-                console.log(
-                    `Supplier not found: ${row["contact name"]}`
-                );
-                continue;
+             if(!supplier){
+                results.push({
+                      status:
+                        "failed",
+                    reference:
+                        row["reference"],
+                    error: `Supplier not found: ${row["contact name"]}`
+                            
+                })
+                continue
             }
 
 
@@ -445,7 +270,7 @@ const createBill = async (req, res) => {
             });
         }
 
-        const results = [];
+        // const results = [];
 
         for (const payload of Object.values(
             groupedBills
