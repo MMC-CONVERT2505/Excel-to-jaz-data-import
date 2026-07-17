@@ -194,7 +194,7 @@ const createBill = async (req, res) => {
                     reference
                 ] = {
                     contactResourceId:
-                        supplier.resourceId,
+                        supplier?.resourceId,
 
                     reference,
 
@@ -256,11 +256,11 @@ const createBill = async (req, res) => {
                 ),
 
                 accountResourceId:
-                    coaAccount.resourceId,
+                    coaAccount?.resourceId,
 
                 ...(tax && {
                     taxProfileResourceId:
-                        tax.resourceId,
+                        tax?.resourceId,
                 }),
             });
         }
