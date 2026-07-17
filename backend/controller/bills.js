@@ -25,6 +25,7 @@ const excelDateToJSDate = (excelDate) => {
 
 
 
+
 const getBillsId = async (req, res) => {
     try {
         const response = await axios.get(
@@ -84,7 +85,12 @@ const getBillsId = async (req, res) => {
 
 const createBill = async (req, res) => {
     try {
-    
+        // const filePath = path.join(
+        //     process.cwd(),
+        //     "files",
+        //     "bill.xlsx"
+        // );
+
 
         const { apiKey } = req.body
 
@@ -115,10 +121,9 @@ const createBill = async (req, res) => {
 
 
 
-        // console.log("taxes", taxes)
+        console.log("taxes", taxes)
 
         const groupedBills = {};
-        const results = [];
 
         for (const row of excelData) {
             console.log("row", row)
@@ -127,7 +132,6 @@ const createBill = async (req, res) => {
                     ?.toString()
                     .trim();
 
-            if (!reference) continue;
 
             const coaAccount =
                 coa.find(
@@ -170,27 +174,18 @@ const createBill = async (req, res) => {
                             .toLowerCase()
                 );
 
-              if(!coaAccount){
-                results.push({
-                      status:
-                        "failed",
-                    reference:
-                        row["reference"],
-                    error: `COA not found: ${row["account name"]}`               
-                })
-                continue
-            } 
+            if (!coaAccount) {
+                console.log(
+                    `COA not found: ${row["account name"]}`
+                );
+               
+            }
 
-             if(!supplier){
-                results.push({
-                      status:
-                        "failed",
-                    reference:
-                        row["reference"],
-                    error: `Supplier not found: ${row["contact name"]}`
-                            
-                })
-                continue
+            if (!supplier) {
+                console.log(
+                    `Supplier not found: ${row["contact name"]}`
+                );
+              
             }
 
 
@@ -270,7 +265,7 @@ const createBill = async (req, res) => {
             });
         }
 
-        // const results = [];
+        const results = [];
 
         for (const payload of Object.values(
             groupedBills
